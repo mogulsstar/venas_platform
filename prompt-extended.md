@@ -77,3 +77,4 @@ python后端使用django框架，前端使用react+Typescript，可视化使用J
 
 请根据以上内容，重构当前的平台，并且将所有没有使用到的前后端脚本文件都删除，保证 代码的简洁性。同时，需要将所有没有使用到的数据库表都删除，保证数据库的简洁性。最后，需要将所有没有使用到的API接口都删除，保证API的简洁性。
 
+https://linear.app/venas-platform/join/f789b7e69cd387000a19eed5b5b522a4?s=0

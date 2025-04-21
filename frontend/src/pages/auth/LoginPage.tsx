@@ -35,48 +35,47 @@ const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const { isAuthenticated, loading, error } = useSelector((state: RootState) => state.auth);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const locationState = location.state as LocationState;
   const from = locationState?.from?.pathname || '/';
-  
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
-  
+
   const formik = useFormik({
     initialValues: {
-      email: '',
+      identifier: '',
       password: '',
       rememberMe: false,
     },
     validationSchema: Yup.object({
-      email: Yup.string()
-        .email(t('validation.invalidEmail'))
+      identifier: Yup.string()
         .required(t('validation.required')),
       password: Yup.string()
         .required(t('validation.required')),
     }),
     onSubmit: (values) => {
       dispatch(login({
-        email: values.email,
+        identifier: values.identifier,
         password: values.password,
       }));
     },
   });
-  
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
-  
+
   const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   };
-  
+
   return (
     <Container component="main" maxWidth="xs">
       <Box
@@ -100,32 +99,32 @@ const LoginPage: React.FC = () => {
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
             {t('common.appName')}
           </Typography>
-          
+
           {error && (
-            <Alert 
-              severity="error" 
+            <Alert
+              severity="error"
               sx={{ width: '100%', mb: 2 }}
               onClose={() => dispatch(clearError())}
             >
               {error}
             </Alert>
           )}
-          
+
           <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1, width: '100%' }}>
             <TextField
               margin="normal"
               required
               fullWidth
-              id="email"
-              label={t('auth.email')}
-              name="email"
-              autoComplete="email"
+              id="identifier"
+              label={t('auth.usernameOrEmail')}
+              name="identifier"
+              autoComplete="username email"
               autoFocus
-              value={formik.values.email}
+              value={formik.values.identifier}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={formik.touched.identifier && Boolean(formik.errors.identifier)}
+              helperText={formik.touched.identifier && formik.errors.identifier}
             />
             <TextField
               margin="normal"

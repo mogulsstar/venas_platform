@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { styled, useTheme } from '@mui/material/styles';
@@ -93,8 +93,11 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 const Layout: React.FC = () => {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
-  const { user } = useSelector((state: RootState) => state.auth);
-  
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+
+  console.log('Layout - Auth state:', { isAuthenticated, user: user ? `${user.first_name} ${user.last_name}` : 'none' });
+
   const [open, setOpen] = useState(true);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElLang, setAnchorElLang] = useState<null | HTMLElement>(null);
@@ -135,6 +138,10 @@ const Layout: React.FC = () => {
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
     handleCloseLangMenu();
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
   };
 
   const menuItems = [
@@ -308,7 +315,7 @@ const Layout: React.FC = () => {
         <List>
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
-              <ListItemButton>
+              <ListItemButton onClick={() => handleNavigate(item.path)}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
               </ListItemButton>

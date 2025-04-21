@@ -45,6 +45,24 @@ interface RegulationDocument {
   previous_version: number | null;
 }
 
+// This type is used by RegulationsPage.tsx
+export interface Regulation {
+  id: number;
+  name: string;
+  description: string;
+  regulation_type: string;
+  status: string;
+  effective_date: string;
+  jurisdiction: string;
+  document_url?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: {
+    id: number;
+    username: string;
+  };
+}
+
 interface RegulationSegment {
   id: number;
   document: number;
@@ -78,6 +96,7 @@ interface RegulationsState {
   currentDocument: RegulationDocument | null;
   segments: RegulationSegment[];
   interpretations: RegulationInterpretation[];
+  regulations: Regulation[];
   loading: boolean;
   error: string | null;
 }
@@ -91,6 +110,7 @@ const initialState: RegulationsState = {
   currentDocument: null,
   segments: [],
   interpretations: [],
+  regulations: [],
   loading: false,
   error: null,
 };
@@ -153,12 +173,25 @@ export const fetchDocuments = createAsyncThunk(
       if (filters.region) queryParams.append('region', filters.region.toString());
       if (filters.category) queryParams.append('category', filters.category.toString());
       if (filters.status) queryParams.append('status', filters.status);
-      
+
       const url = `/regulations/documents/?${queryParams.toString()}`;
       const response = await api.get<RegulationDocument[]>(url);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to fetch documents');
+    }
+  }
+);
+
+// This function is used by RegulationsPage.tsx
+export const fetchRegulations = createAsyncThunk(
+  'regulations/fetchRegulations',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get<Regulation[]>('/regulations/');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch regulations');
     }
   }
 );
@@ -171,6 +204,19 @@ export const fetchDocument = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to fetch document');
+    }
+  }
+);
+
+// This function is used by RegulationDetailPage.tsx
+export const fetchRegulation = createAsyncThunk(
+  'regulations/fetchRegulation',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await api.get<Regulation>(`/regulations/${id}/`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch regulation');
     }
   }
 );
@@ -281,6 +327,42 @@ export const generateAIInterpretation = createAsyncThunk(
   }
 );
 
+export const deleteRegulation = createAsyncThunk(
+  'regulations/deleteRegulation',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await api.delete(`/regulations/documents/${id}/`);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to delete regulation');
+    }
+  }
+);
+
+export const createRegulation = createAsyncThunk(
+  'regulations/createRegulation',
+  async (regulation: Partial<Regulation>, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/regulations/', regulation);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to create regulation');
+    }
+  }
+);
+
+export const updateRegulation = createAsyncThunk(
+  'regulations/updateRegulation',
+  async ({ id, data }: { id: number; data: Partial<Regulation> }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/regulations/${id}/`, data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to update regulation');
+    }
+  }
+);
+
 // Slice
 const regulationsSlice = createSlice({
   name: 'regulations',
@@ -309,7 +391,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch regions
       .addCase(fetchRegions.pending, (state) => {
         state.loading = true;
@@ -324,7 +406,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch categories
       .addCase(fetchCategories.pending, (state) => {
         state.loading = true;
@@ -339,7 +421,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch documents
       .addCase(fetchDocuments.pending, (state) => {
         state.loading = true;
@@ -354,7 +436,22 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
+      // Fetch regulations
+      .addCase(fetchRegulations.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRegulations.fulfilled, (state, action: PayloadAction<Regulation[]>) => {
+        state.loading = false;
+        state.regulations = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchRegulations.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
       // Fetch document
       .addCase(fetchDocument.pending, (state) => {
         state.loading = true;
@@ -369,7 +466,29 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
+      // Fetch regulation
+      .addCase(fetchRegulation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRegulation.fulfilled, (state, action: PayloadAction<Regulation>) => {
+        state.loading = false;
+        // Find the regulation in the regulations array and update it
+        const index = state.regulations.findIndex(reg => reg.id === action.payload.id);
+        if (index !== -1) {
+          state.regulations[index] = action.payload;
+        } else {
+          // If not found, add it to the array
+          state.regulations.push(action.payload);
+        }
+        state.error = null;
+      })
+      .addCase(fetchRegulation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
       // Fetch segments
       .addCase(fetchSegments.pending, (state) => {
         state.loading = true;
@@ -384,7 +503,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch interpretations
       .addCase(fetchInterpretations.pending, (state) => {
         state.loading = true;
@@ -402,7 +521,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Upload document
       .addCase(uploadDocument.pending, (state) => {
         state.loading = true;
@@ -418,7 +537,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Process document
       .addCase(processDocument.pending, (state) => {
         state.loading = true;
@@ -432,7 +551,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Create interpretation
       .addCase(createInterpretation.pending, (state) => {
         state.loading = true;
@@ -450,7 +569,7 @@ const regulationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Generate AI interpretation
       .addCase(generateAIInterpretation.pending, (state) => {
         state.loading = true;
@@ -465,6 +584,58 @@ const regulationsSlice = createSlice({
         }
       )
       .addCase(generateAIInterpretation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Delete regulation
+      .addCase(deleteRegulation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteRegulation.fulfilled, (state, action: PayloadAction<number>) => {
+        state.loading = false;
+        state.documents = state.documents.filter(doc => doc.id !== action.payload);
+        state.regulations = state.regulations.filter(reg => reg.id !== action.payload);
+        if (state.currentDocument && state.currentDocument.id === action.payload) {
+          state.currentDocument = null;
+        }
+        state.error = null;
+      })
+      .addCase(deleteRegulation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Create regulation
+      .addCase(createRegulation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createRegulation.fulfilled, (state, action: PayloadAction<Regulation>) => {
+        state.loading = false;
+        state.regulations.push(action.payload);
+        state.error = null;
+      })
+      .addCase(createRegulation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Update regulation
+      .addCase(updateRegulation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateRegulation.fulfilled, (state, action: PayloadAction<Regulation>) => {
+        state.loading = false;
+        const index = state.regulations.findIndex(reg => reg.id === action.payload.id);
+        if (index !== -1) {
+          state.regulations[index] = action.payload;
+        }
+        state.error = null;
+      })
+      .addCase(updateRegulation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

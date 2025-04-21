@@ -56,9 +56,13 @@ export const fetchDashboards = createAsyncThunk(
   'dashboard/fetchDashboards',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get<Dashboard[]>('/dashboard/my-dashboards/');
+      const response = await api.get<Dashboard[]>('/dashboard/dashboards/my-dashboards/');
       return response.data;
     } catch (error: any) {
+      // 如果是 404 或 401 错误，返回空数组而不是拒绝 Promise
+      if (error.response?.status === 404 || error.response?.status === 401) {
+        return [];
+      }
       return rejectWithValue(error.response?.data?.detail || 'Failed to fetch dashboards');
     }
   }
@@ -68,9 +72,24 @@ export const fetchDefaultDashboard = createAsyncThunk(
   'dashboard/fetchDefaultDashboard',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get<Dashboard>('/dashboard/default/');
+      const response = await api.get<Dashboard>('/dashboard/dashboards/default/');
       return response.data;
     } catch (error: any) {
+      // 如果是 404 或 401 错误，返回空对象而不是拒绝 Promise
+      if (error.response?.status === 404 || error.response?.status === 401) {
+        return {
+          id: 0,
+          name: 'Default Dashboard',
+          description: '',
+          layout: {},
+          is_default: true,
+          created_by: null,
+          created_by_name: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          widget_instances: []
+        };
+      }
       return rejectWithValue(error.response?.data?.detail || 'Failed to fetch default dashboard');
     }
   }
@@ -80,7 +99,7 @@ export const fetchDashboard = createAsyncThunk(
   'dashboard/fetchDashboard',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await api.get<Dashboard>(`/dashboard/${id}/`);
+      const response = await api.get<Dashboard>(`/dashboard/dashboards/${id}/`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to fetch dashboard');
@@ -92,7 +111,7 @@ export const createDashboard = createAsyncThunk(
   'dashboard/createDashboard',
   async (dashboard: Partial<Dashboard>, { rejectWithValue }) => {
     try {
-      const response = await api.post<Dashboard>('/dashboard/', dashboard);
+      const response = await api.post<Dashboard>('/dashboard/dashboards/', dashboard);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to create dashboard');
@@ -104,7 +123,7 @@ export const updateDashboard = createAsyncThunk(
   'dashboard/updateDashboard',
   async ({ id, data }: { id: number; data: Partial<Dashboard> }, { rejectWithValue }) => {
     try {
-      const response = await api.patch<Dashboard>(`/dashboard/${id}/`, data);
+      const response = await api.patch<Dashboard>(`/dashboard/dashboards/${id}/`, data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to update dashboard');
@@ -144,7 +163,7 @@ export const addWidgetToDashboard = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await api.post<WidgetInstance>(`/dashboard/${dashboardId}/add_widget/`, {
+      const response = await api.post<WidgetInstance>(`/dashboard/dashboards/${dashboardId}/add_widget/`, {
         widget_id: widgetId,
         position_x: position.x,
         position_y: position.y,
@@ -186,7 +205,7 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch default dashboard
       .addCase(fetchDefaultDashboard.pending, (state) => {
         state.loading = true;
@@ -201,7 +220,7 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch dashboard
       .addCase(fetchDashboard.pending, (state) => {
         state.loading = true;
@@ -216,7 +235,7 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Create dashboard
       .addCase(createDashboard.pending, (state) => {
         state.loading = true;
@@ -232,7 +251,7 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Update dashboard
       .addCase(updateDashboard.pending, (state) => {
         state.loading = true;
@@ -252,7 +271,7 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch widgets
       .addCase(fetchWidgets.pending, (state) => {
         state.loading = true;
@@ -267,7 +286,7 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Add widget to dashboard
       .addCase(addWidgetToDashboard.pending, (state) => {
         state.loading = true;

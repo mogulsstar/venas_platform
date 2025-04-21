@@ -13,7 +13,7 @@ from .views import (
 # Create a router and register our viewsets with it
 router = DefaultRouter()
 router.register(r'widgets', DashboardWidgetViewSet)
-router.register(r'', DashboardViewSet, basename='dashboard')
+router.register(r'dashboards', DashboardViewSet, basename='dashboard')
 router.register(r'widget-instances', DashboardWidgetInstanceViewSet)
 router.register(r'user-dashboards', UserDashboardViewSet)
 

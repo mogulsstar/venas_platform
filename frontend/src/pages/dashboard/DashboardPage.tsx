@@ -36,16 +36,33 @@ const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const { currentDashboard, dashboards, loading } = useSelector((state: RootState) => state.dashboard);
-  
+
   useEffect(() => {
-    dispatch(fetchDashboards());
-    dispatch(fetchDefaultDashboard());
+    console.log('DashboardPage - Fetching dashboards');
+    dispatch(fetchDashboards())
+      .unwrap()
+      .then(dashboards => {
+        console.log('Dashboards fetched successfully:', dashboards);
+      })
+      .catch(error => {
+        console.error('Failed to fetch dashboards:', error);
+      });
+
+    console.log('DashboardPage - Fetching default dashboard');
+    dispatch(fetchDefaultDashboard())
+      .unwrap()
+      .then(dashboard => {
+        console.log('Default dashboard fetched successfully:', dashboard);
+      })
+      .catch(error => {
+        console.error('Failed to fetch default dashboard:', error);
+      });
   }, [dispatch]);
-  
+
   if (loading) {
     return <Typography>{t('common.loading')}</Typography>;
   }
-  
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -71,7 +88,7 @@ const DashboardPage: React.FC = () => {
           </Button>
         </Box>
       </Box>
-      
+
       <Grid container spacing={3}>
         {/* Summary Card */}
         <Grid item xs={12} md={6} lg={3}>
@@ -108,7 +125,7 @@ const DashboardPage: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         {/* Recent Activity */}
         <Grid item xs={12} md={6} lg={4}>
           <Card sx={{ height: '100%' }}>
@@ -169,7 +186,7 @@ const DashboardPage: React.FC = () => {
             </CardActions>
           </Card>
         </Grid>
-        
+
         {/* Quick Actions */}
         <Grid item xs={12} md={6} lg={2}>
           <Card>
@@ -195,7 +212,7 @@ const DashboardPage: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         {/* Statistics */}
         <Grid item xs={12} md={6} lg={3}>
           <Card>
@@ -212,7 +229,7 @@ const DashboardPage: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         {/* Additional Widgets */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
@@ -226,7 +243,7 @@ const DashboardPage: React.FC = () => {
             </Box>
           </Paper>
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>

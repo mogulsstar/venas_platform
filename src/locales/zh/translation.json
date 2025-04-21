@@ -1,0 +1,42 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "view": "查看",
+    "back": "返回",
+    "search": "搜索",
+    "all": "全部",
+    "actions": "操作",
+    "createdAt": "创建时间",
+    "updatedAt": "更新时间",
+    "none": "无",
+    "saving": "保存中..."
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出",
+    "username": "用户名",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "rememberMe": "记住我",
+    "forgotPassword": "忘记密码？",
+    "usernameOrEmail": "用户名或邮箱",
+    "firstName": "名",
+    "lastName": "姓",
+    "register": "注册",
+    "alreadyHaveAccount": "已有账号？登录",
+    "dontHaveAccount": "没有账号？注册",
+    "registrationSuccess": "注册成功！正在跳转到登录页面...",
+    "isAdmin": "创建为管理员"
+  },
+  "validation": {
+    "required": "此字段为必填项",
+    "invalidEmail": "无效的邮箱地址",
+    "minLength": "至少需要 {{length}} 个字符",
+    "passwordsMatch": "密码必须匹配"
+  }
+}

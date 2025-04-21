@@ -1,0 +1,42 @@
+{
+  "common": {
+    "loading": "Wird geladen...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "view": "Ansehen",
+    "back": "Zurück",
+    "search": "Suchen",
+    "all": "Alle",
+    "actions": "Aktionen",
+    "createdAt": "Erstellt am",
+    "updatedAt": "Aktualisiert am",
+    "none": "Keine",
+    "saving": "Wird gespeichert..."
+  },
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "username": "Benutzername",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "rememberMe": "Angemeldet bleiben",
+    "forgotPassword": "Passwort vergessen?",
+    "usernameOrEmail": "Benutzername oder E-Mail",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "register": "Registrieren",
+    "alreadyHaveAccount": "Bereits ein Konto? Anmelden",
+    "dontHaveAccount": "Kein Konto? Registrieren",
+    "registrationSuccess": "Registrierung erfolgreich! Weiterleitung zur Anmeldung...",
+    "isAdmin": "Als Administrator erstellen"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "invalidEmail": "Ungültige E-Mail-Adresse",
+    "minLength": "Muss mindestens {{length}} Zeichen lang sein",
+    "passwordsMatch": "Passwörter müssen übereinstimmen"
+  }
+}

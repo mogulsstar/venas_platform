@@ -6,7 +6,7 @@ authors = ["yang, qingfeng <qingfeng.yang@iav.de>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<4.0"
 django = "^4.2"
 djangorestframework = "^3.14.0"
 django-cors-headers = "^4.3.1"
@@ -26,6 +26,11 @@ drf-yasg = "^1.21.7"
 gunicorn = "^21.2.0"
 whitenoise = "^6.5.0"
 djangorestframework-simplejwt = "^5.5.0"
+python-can = "^4.5.0"
+chardet = "^5.2.0"
+h5py = "^3.13.0"
+psutil = "^7.0.0"
+pymysql = "^1.1.1"
 
 
 [build-system]

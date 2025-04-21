@@ -23,13 +23,13 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing users.
     """
-    
+
     queryset = User.objects.all().order_by('-date_joined')
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['role', 'is_active', 'department']
     search_fields = ['email', 'first_name', 'last_name', 'department']
     ordering_fields = ['email', 'first_name', 'last_name', 'date_joined', 'last_login']
-    
+
     def get_serializer_class(self):
         """
         Return the appropriate serializer class based on the action.
@@ -41,12 +41,14 @@ class UserViewSet(viewsets.ModelViewSet):
         elif self.action == 'change_password':
             return ChangePasswordSerializer
         return UserSerializer
-    
+
     def get_permissions(self):
         """
         Return the appropriate permissions based on the action.
         """
-        if self.action in ['update', 'partial_update', 'retrieve']:
+        if self.action in ['login', 'logout']:
+            permission_classes = [permissions.AllowAny]
+        elif self.action in ['update', 'partial_update', 'retrieve']:
             permission_classes = [permissions.IsAuthenticated, IsSelfOrAdmin]
         elif self.action in ['list', 'create', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsAdminUser]
@@ -55,7 +57,7 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
-    
+
     @action(detail=True, methods=['post'])
     def change_password(self, request, pk=None):
         """
@@ -63,30 +65,30 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         user = self.get_object()
         serializer = self.get_serializer(data=request.data)
-        
+
         if serializer.is_valid():
             user.set_password(serializer.validated_data['new_password'])
             user.save()
             return Response({'detail': _('Password changed successfully.')}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @action(detail=False, methods=['post'])
     def login(self, request):
         """
         Log in a user and return JWT tokens.
         """
         serializer = LoginSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            
+
             # Update user login statistics
             user.last_login = timezone.now()
             user.last_activity = timezone.now()
             user.login_count += 1
             user.save()
-            
+
             # Create activity log
             UserActivity.objects.create(
                 user=user,
@@ -94,18 +96,18 @@ class UserViewSet(viewsets.ModelViewSet):
                 ip_address=self.get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
             )
-            
+
             # Generate tokens
             refresh = RefreshToken.for_user(user)
-            
+
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'user': UserSerializer(user).data
             }, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @action(detail=False, methods=['post'])
     def logout(self, request):
         """
@@ -119,9 +121,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 ip_address=self.get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
             )
-        
+
         return Response({'detail': _('Successfully logged out.')}, status=status.HTTP_200_OK)
-    
+
     @action(detail=False, methods=['get'])
     def me(self, request):
         """
@@ -131,7 +133,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = UserSerializer(request.user)
             return Response(serializer.data)
         return Response({'detail': _('Not authenticated.')}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
     def get_client_ip(self, request):
         """
         Get the client's IP address.
@@ -148,14 +150,14 @@ class UserActivityViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for viewing user activities.
     """
-    
+
     serializer_class = UserActivitySerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['user', 'action']
     search_fields = ['action', 'ip_address', 'page']
     ordering_fields = ['action_time', 'user']
-    
+
     def get_queryset(self):
         """
         Return the queryset based on the user's role.
@@ -169,13 +171,13 @@ class UserPermissionViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing user permissions.
     """
-    
+
     serializer_class = UserPermissionSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['user', 'module']
     search_fields = ['module']
-    
+
     def get_queryset(self):
         """
         Return the queryset based on the user's role.
